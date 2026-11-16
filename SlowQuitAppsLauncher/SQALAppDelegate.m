@@ -17,7 +17,11 @@
         path = [path stringByDeletingLastPathComponent];
         path = [path stringByDeletingLastPathComponent];
         path = [path stringByDeletingLastPathComponent];
-        [NSWorkspace.sharedWorkspace launchApplication:path];
+        NSURL *appURL = [NSURL fileURLWithPath:path isDirectory:YES];
+        NSWorkspaceOpenConfiguration *configuration = [NSWorkspaceOpenConfiguration configuration];
+        [NSWorkspace.sharedWorkspace openApplicationAtURL:appURL
+                                            configuration:configuration
+                                        completionHandler:nil];
     }
 }
 

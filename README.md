@@ -65,21 +65,26 @@ $ brew cu slowquitapps
 ```
 
 Installing the app through Homebrew will add a script called `sqa` accessible
-from the command line. To use this tool, the main app must first be given
-permissions to run.
+from the command line. The helper is installed inside the app bundle at
+`SlowQuitApps.app/Contents/Resources/sqa`. To use it, the main app must first
+be given Accessibility permission.
 
 
 ### Post-update Maintenance
 
 Unfortunately, after upgrading SQA, you will have to reset accessibility
-permissions for the app. Go to System Preferences -> Security & Privacy ->
-Privacy -> Accessibility. Remove SlowQuitApps from the list, then add it back
-to the list again.
+permissions for the app. Go to System Settings -> Privacy & Security ->
+Accessibility. Remove SlowQuitApps from the list, then add it back to the list
+again.
 
 ### Compatibility
 
-The app is currently developed on Mojave and only support for Mojave can be
-provided.
+The current source and 0.8.2 build target macOS 12 and later. Older releases
+may support earlier macOS versions; check their release notes before installing.
+
+SlowQuitApps uses Accessibility permission to observe keyboard events and
+handle Cmd-Q on the Mac. Keystrokes are processed locally and are not stored
+or transmitted by the app.
 
 * Mavericks (10.9) to High Sierra (10.13) support: please download version 0.5.0
 * Mountain Lion (10.8) support: please download version 0.4.0
@@ -151,6 +156,8 @@ By default, an overlay with an indicator of the time remaining until the app get
 
 ## License
 
+SlowQuitApps is licensed under GPL-2.0-or-later. See [LICENSE.txt](LICENSE.txt).
+
 ```
 SlowQuitApps
 
@@ -173,7 +180,26 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 ### App Icon
 
-The app icon is a contribution courtesy of [@fancyme][1] ([#35][2]).
+The app icon was contributed by [@fancyme][1] ([#35][2]). The preview and icon
+are included with permission from the project maintainer.
 
 [1]: https://github.com/fancyme
 [2]: https://github.com/dteoh/SlowQuitApps/issues/35
+
+## Build from source
+
+With Xcode and a Developer ID Application certificate installed, run:
+
+```sh
+DEVELOPMENT_TEAM=YOUR_TEAM_ID \
+SIGNING_IDENTITY="Developer ID Application: Your Name (YOUR_TEAM_ID)" \
+./scripts/build-dmg.sh
+```
+
+This creates a signed DMG and a matching source archive in `dist/`. To submit the DMG for notarization, first store Apple notarization credentials in Keychain with `notarytool`, then run the script with `NOTARIZE=1` and `NOTARY_PROFILE` set to that Keychain profile name.
+
+## Project documents
+
+- [Changelog](CHANGELOG.md)
+- [Contributing](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)

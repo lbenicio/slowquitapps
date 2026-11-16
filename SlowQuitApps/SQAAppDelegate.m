@@ -6,6 +6,11 @@
 #import "SQAStateMachine.h"
 #import "SQAAutostart.h"
 
+static CGEventRef eventTapHandler(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *userInfo);
+static NSString *stringFromCGKeyboardEvent(CGEventRef event);
+static NSRunningApplication *findActiveApp(void);
+static BOOL hasAccessibility(void);
+
 @interface SQAAppDelegate() {
 @private
     SQAStateMachine *stateMachine;
@@ -96,6 +101,7 @@
         return;
     }
 
+    NSRunningApplication *targetApp = findActiveApp();
     stateMachine = [[SQAStateMachine alloc] initWithEventSource:appEventSource];
     __weak typeof(stateMachine) weakSM = stateMachine;
     __weak typeof(overlayView) weakOverlay = overlayView;
@@ -103,19 +109,12 @@
 
     if (overlayView) {
         stateMachine.onStart = ^{
-            NSString *appTitle = @"";
-            NSRunningApplication *app = findActiveApp();
-            if (app) {
-                appTitle = [app localizedName] ?: @"";
-            }
+            NSString *appTitle = [targetApp localizedName] ?: @"";
             [weakOverlay showOverlay:weakSM.completionDurationInSeconds
                            withTitle:appTitle];
         };
         stateMachine.onCompletion = ^{
-            NSRunningApplication *app = findActiveApp();
-            if (app) {
-                [app terminate];
-            }
+            [targetApp terminate];
             [weakOverlay hideOverlay];
             [weakOverlay resetOverlay];
         };
@@ -126,10 +125,7 @@
         };
     } else {
         stateMachine.onCompletion = ^{
-            NSRunningApplication *app = findActiveApp();
-            if (app) {
-                [app terminate];
-            }
+            [targetApp terminate];
         };
         stateMachine.onCancelled = ^{
             [weakSelf destroyStateMachine];
@@ -184,11 +180,11 @@
     return (invertList ? NO : YES);
 }
 
-NSRunningApplication* findActiveApp() {
+static NSRunningApplication *findActiveApp(void) {
     return [[NSWorkspace sharedWorkspace] menuBarOwningApplication];
 }
 
-BOOL hasAccessibility() {
+static BOOL hasAccessibility(void) {
 #if defined(DEBUG)
     return YES;
 #else
@@ -197,7 +193,7 @@ BOOL hasAccessibility() {
 #endif
 }
 
-CGEventRef eventTapHandler(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *userInfo) {
+static CGEventRef eventTapHandler(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *userInfo) {
     if (type != kCGEventFlagsChanged && type != kCGEventKeyDown && type != kCGEventKeyUp) {
         return event;
     }
@@ -246,7 +242,7 @@ CGEventRef eventTapHandler(CGEventTapProxy proxy, CGEventType type, CGEventRef e
     return event;
 }
 
-NSString * stringFromCGKeyboardEvent(CGEventRef event) {
+static NSString *stringFromCGKeyboardEvent(CGEventRef event) {
     UniCharCount actualStringLength = 0;
     UniChar unicodeString[4] = {0, 0, 0, 0};
     CGEventKeyboardGetUnicodeString(event, 1, &actualStringLength, unicodeString);

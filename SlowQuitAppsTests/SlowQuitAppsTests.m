@@ -7,6 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
+#import "../SlowQuitApps/SQAPreferences.h"
 
 @interface SlowQuitAppsTests : XCTestCase
 
@@ -26,9 +27,9 @@
     [super tearDown];
 }
 
-- (void)testExample
+- (void)testDelayIsPositive
 {
-    XCTFail(@"No implementation for \"%s\"", __PRETTY_FUNCTION__);
+	XCTAssertGreaterThan([SQAPreferences delay], 0);
 }
 
 @end

@@ -38,7 +38,7 @@
         [titleFxView addSubview:titleView];
 
         NSStackView *stackView = [NSStackView stackViewWithViews:@[overlayView, titleFxView]];
-        stackView.orientation = NSLayoutConstraintOrientationVertical;
+        stackView.orientation = NSUserInterfaceLayoutOrientationVertical;
         stackView.alignment = NSLayoutAttributeCenterX;
         stackView.spacing = 0;
 

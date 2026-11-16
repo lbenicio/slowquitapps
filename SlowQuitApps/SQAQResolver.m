@@ -1,6 +1,8 @@
 @import Carbon;
 #import "SQAQResolver.h"
 
+static CGKeyCode whatIsQ(void);
+
 @interface SQAQResolver() {
 @private
     CGKeyCode resolvedKeyCode;
@@ -22,8 +24,17 @@
     return resolvedKeyCode;
 }
 
-CGKeyCode whatIsQ() {
-    NSData *rawLayout = (__bridge NSData *)((CFDataRef) TISGetInputSourceProperty(TISCopyCurrentKeyboardInputSource(), kTISPropertyUnicodeKeyLayoutData));
+static CGKeyCode whatIsQ(void) {
+    TISInputSourceRef inputSource = TISCopyCurrentKeyboardInputSource();
+    if (!inputSource) {
+        return kVK_ANSI_Q;
+    }
+    CFDataRef rawLayout = TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData);
+    if (!rawLayout) {
+        CFRelease(inputSource);
+        return kVK_ANSI_Q;
+    }
+    const UCKeyboardLayout *keyboardLayout = (const UCKeyboardLayout *)CFDataGetBytePtr(rawLayout);
     UInt32 cmdKeyBitmask = (cmdKey >> 8) & 0xFF;
     UInt32 deadKeyState = 0;
     UniChar str[4] = {0, 0, 0, 0};
@@ -57,9 +68,9 @@ CGKeyCode whatIsQ() {
         kVK_ANSI_Y,
         kVK_ANSI_Z
     };
-    for (int i = 0; i < sizeof(candidates); i++) {
+    for (size_t i = 0; i < sizeof(candidates) / sizeof(candidates[0]); i++) {
         CGKeyCode candidate = candidates[i];
-        OSStatus status = UCKeyTranslate(rawLayout.bytes,
+        OSStatus status = UCKeyTranslate(keyboardLayout,
                                          candidate,
                                          kUCKeyActionDown,
                                          cmdKeyBitmask,
@@ -75,11 +86,13 @@ CGKeyCode whatIsQ() {
         }
         NSString *result = [NSString stringWithCharacters:str length:actualLength];
         if ([result isEqualToString:@"q"]) {
+            CFRelease(inputSource);
             return candidate;
         }
     }
 
     // Give up.
+    CFRelease(inputSource);
     return kVK_ANSI_Q;
 }
 

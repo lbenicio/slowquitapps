@@ -130,16 +130,21 @@ elif [ "$1" = 'whitelist' ]; then
         while [ $# -gt 0 ]; do
             app_name="$1"
             shift
-            id_of_app=$(osascript -e "id of app \"${app_name}\"" 2>/dev/null)
+            id_of_app=$(osascript - "$app_name" 2>/dev/null <<'APPLESCRIPT'
+on run argv
+    return id of app (item 1 of argv)
+end run
+APPLESCRIPT
+            )
 
             [ "${id_of_app}" = '' ] && echo "'${app_name}': app id not found," \
                 ' use <app-name> for /Applications/<app-name>.app' && continue
 
-            exist_in_list=$(defaults read com.dteoh.SlowQuitApps whitelist 2>&1 | grep "${id_of_app}")
+            exist_in_list=$(defaults read com.dteoh.SlowQuitApps whitelist 2>&1 | grep -F -- "${id_of_app}")
 
             if [ "$action" = 'add' ]; then
                 [ "$exist_in_list" != '' ] && echo "'${app_name}' : already in the whitelist." && continue
-                defaults write com.dteoh.SlowQuitApps whitelist -array-add ${id_of_app}
+                defaults write com.dteoh.SlowQuitApps whitelist -array-add "${id_of_app}"
                 echo "'${app_name}' : added successfully"
             elif [ "$action" = 'delete' ]; then
                 [ "$exist_in_list" = '' ] && echo "'${app_name}' : not in whitelist." && continue
@@ -149,7 +154,7 @@ elif [ "$1" = 'whitelist' ]; then
 
                 list_id_od_app_new=()
                 for i in "${list_id_od_app[@]}"; do
-                    [ "$i" != "$id_of_app" ] && list_id_od_app_new+=($i)
+                    [ "$i" != "$id_of_app" ] && list_id_od_app_new+=("$i")
                 done
 
                 defaults write com.dteoh.SlowQuitApps whitelist -array "${list_id_od_app_new[@]}"
