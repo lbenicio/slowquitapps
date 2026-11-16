@@ -87,8 +87,10 @@ hdiutil create \
     -ov \
     -format UDZO \
     "$DMG_PATH"
-codesign --force --sign "$SIGNING_IDENTITY" --timestamp "$DMG_PATH"
-codesign --verify --strict --verbose=2 "$DMG_PATH"
+codesign --sign "$SIGNING_IDENTITY" \
+    --timestamp \
+    --identifier "dev.lbenicio.slowquitapps" \
+    "$DMG_PATH"
 
 if [[ "${NOTARIZE:-0}" == "1" ]]; then
     if [[ -z "${NOTARY_PROFILE:-}" ]]; then
@@ -99,6 +101,8 @@ if [[ "${NOTARIZE:-0}" == "1" ]]; then
     xcrun stapler staple "$DMG_PATH"
     xcrun stapler validate "$DMG_PATH"
 fi
+
+codesign --verify --strict --verbose=4 "$DMG_PATH"
 
 (
     cd "$DIST_DIR"
