@@ -21,8 +21,9 @@ xcodebuild \
   build
 ```
 
-The release DMG script requires a Developer ID Application certificate. See
-the build instructions in [README.md](README.md).
+The optional signed DMG script requires a Developer ID Application certificate.
+The tag-based GitHub release workflow builds an unsigned app ZIP and DMG without
+Apple signing or notarization credentials; see [README.md](README.md).
 
 Run the unit tests locally with:
 

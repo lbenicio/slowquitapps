@@ -198,6 +198,12 @@ SIGNING_IDENTITY="Developer ID Application: Your Name (YOUR_TEAM_ID)" \
 
 This creates a signed DMG and a matching source archive in `dist/`. To submit the DMG for notarization, first store Apple notarization credentials in Keychain with `notarytool`, then run the script with `NOTARIZE=1` and `NOTARY_PROFILE` set to that Keychain profile name.
 
+Pushing a `v*` version tag starts the GitHub Actions release workflow. It runs the
+unit tests, builds the app without signing, and attaches an unsigned app ZIP, an
+unsigned DMG, and SHA-256 checksums to the GitHub release. The workflow does not
+use Apple signing or notarization credentials. The app and DMG will not pass
+`codesign --verify`, and macOS may show a security warning when opening the app.
+
 ## Project documents
 
 - [Changelog](CHANGELOG.md)

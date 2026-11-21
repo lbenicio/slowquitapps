@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-15
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Test, build, and package unsigned app
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' SlowQuitApps/SlowQuitApps-Info.plist)
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [[ "$TAG_VERSION" != "$VERSION" ]]; then
+            echo "Tag version ($TAG_VERSION) does not match app version ($VERSION)." >&2
+            exit 1
+          fi
+
+          DERIVED_DATA="$RUNNER_TEMP/SlowQuitApps-DerivedData"
+
+          xcodebuild test \
+            -project SlowQuitApps.xcodeproj \
+            -scheme SlowQuitApps \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -derivedDataPath "$DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+          xcodebuild build \
+            -project SlowQuitApps.xcodeproj \
+            -scheme SlowQuitApps \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath "$DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+          APP_PATH="$DERIVED_DATA/Build/Products/Release/SlowQuitApps.app"
+          if [[ ! -d "$APP_PATH" ]]; then
+            echo "Xcode did not produce the expected app: $APP_PATH" >&2
+            exit 1
+          fi
+
+          ASSET_DIR="$RUNNER_TEMP/SlowQuitApps-release"
+          ZIP_NAME="SlowQuitApps-${VERSION}-unsigned.zip"
+          DMG_NAME="SlowQuitApps-${VERSION}-unsigned.dmg"
+          STAGING_DIR="$ASSET_DIR/dmg-root"
+          mkdir -p "$ASSET_DIR"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ASSET_DIR/$ZIP_NAME"
+          mkdir -p "$STAGING_DIR"
+          ditto "$APP_PATH" "$STAGING_DIR/SlowQuitApps.app"
+          ln -s /Applications "$STAGING_DIR/Applications"
+          cp LICENSE.txt "$STAGING_DIR/LICENSE.txt"
+          cat > "$STAGING_DIR/README.txt" <<EOF
+          SlowQuitApps ${VERSION}
+
+          Drag SlowQuitApps.app to Applications. This app is unsigned and not notarized.
+          macOS may display a security warning when opening it.
+          EOF
+          hdiutil create \
+            -volname "SlowQuitApps $VERSION" \
+            -srcfolder "$STAGING_DIR" \
+            -ov \
+            -format UDZO \
+            "$ASSET_DIR/$DMG_NAME"
+          (
+            cd "$ASSET_DIR"
+            shasum -a 256 "$ZIP_NAME" "$DMG_NAME" > SHA256SUMS
+          )
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' SlowQuitApps/SlowQuitApps-Info.plist)
+          ASSET_DIR="$RUNNER_TEMP/SlowQuitApps-release"
+
+          gh release create "$GITHUB_REF_NAME" \
+            "$ASSET_DIR/SlowQuitApps-${VERSION}-unsigned.zip" \
+            "$ASSET_DIR/SlowQuitApps-${VERSION}-unsigned.dmg" \
+            "$ASSET_DIR/SHA256SUMS" \
+            --verify-tag \
+            --title "SlowQuitApps $VERSION" \
+            --generate-notes \
+            --notes "The ZIP contains an unsigned app, and the DMG is also unsigned. No Apple Developer signing identity or notarization was used; neither the app nor DMG will pass codesign verification, and macOS may display a security warning when opening the app."
