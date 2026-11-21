@@ -4,8 +4,8 @@
 
 
 + (NSUserDefaults *)defaults {
-    static BOOL defaultsRegistered;
-    if (!defaultsRegistered) {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
       NSDictionary *defaults = @{
                                  @"delay": @1000,
                                  @"whitelist": @[],
@@ -14,52 +14,29 @@
                                  @"disableAutostart": @NO
                                  };
       [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
-        defaultsRegistered = YES;
-    }
+    });
     return [NSUserDefaults standardUserDefaults];
 }
 
 + (BOOL)displayOverlay {
-    static BOOL displayOverlay;
-    if (!displayOverlay) {
-        displayOverlay = [[self defaults] boolForKey:@"displayOverlay"];
-    }
-    return displayOverlay;
+    return [[self defaults] boolForKey:@"displayOverlay"];
 }
 
 + (NSInteger)delay {
-    static NSInteger delay;
-    if (delay == 0) {
-        delay = [[self defaults] integerForKey:@"delay"];
-        if (delay <= 0) {
-            delay = 1000;
-        }
-    }
-    return delay;
+    NSInteger delay = [[self defaults] integerForKey:@"delay"];
+    return delay > 0 ? delay : 1000;
 }
 
 + (NSArray<NSString *> *)whitelist {
-    static NSArray<NSString *> *whitelist;
-    if (whitelist == NULL) {
-        whitelist = [[self defaults] stringArrayForKey:@"whitelist"];
-    }
-    return whitelist;
+    return [[self defaults] stringArrayForKey:@"whitelist"] ?: @[];
 }
 
 + (BOOL)invertList {
-    static BOOL invertList;
-    if (!invertList) {
-        invertList = [[self defaults] boolForKey:@"invertList"];
-    }
-    return invertList;
+    return [[self defaults] boolForKey:@"invertList"];
 }
 
 + (BOOL)disableAutostart {
-    static BOOL disableAutostart;
-    if (!disableAutostart) {
-        disableAutostart = [[self defaults] boolForKey:@"disableAutostart"];
-    }
-    return disableAutostart;
+    return [[self defaults] boolForKey:@"disableAutostart"];
 }
 
 @end

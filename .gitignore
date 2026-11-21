@@ -1,5 +1,8 @@
 xcuserdata
 xcshareddata
+!SlowQuitApps.xcodeproj/xcshareddata/
+!SlowQuitApps.xcodeproj/xcshareddata/xcschemes/
+!SlowQuitApps.xcodeproj/xcshareddata/xcschemes/SlowQuitApps.xcscheme
 .DS_Store
 /.build/
 /dist/

@@ -24,6 +24,17 @@ xcodebuild \
 The release DMG script requires a Developer ID Application certificate. See
 the build instructions in [README.md](README.md).
 
+Run the unit tests locally with:
+
+```sh
+xcodebuild test \
+  -project SlowQuitApps.xcodeproj \
+  -scheme SlowQuitApps \
+  -destination 'platform=macOS' \
+  -enableCodeCoverage YES \
+  CODE_SIGNING_ALLOWED=NO
+```
+
 ## Pull requests
 
 - Keep each pull request focused and describe the user-visible effect.

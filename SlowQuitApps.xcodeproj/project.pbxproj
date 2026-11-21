@@ -680,7 +680,6 @@
 		0695049A194A81E9007AB2D5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/SlowQuitApps.app/Contents/MacOS/SlowQuitApps";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
@@ -695,7 +694,6 @@
 				INFOPLIST_FILE = "SlowQuitAppsTests/SlowQuitAppsTests-Info.plist";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.dteoh.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
 			};
 			name = Debug;
@@ -703,7 +701,6 @@
 		0695049B194A81E9007AB2D5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/SlowQuitApps.app/Contents/MacOS/SlowQuitApps";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
@@ -714,7 +711,6 @@
 				INFOPLIST_FILE = "SlowQuitAppsTests/SlowQuitAppsTests-Info.plist";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.dteoh.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
 			};
 			name = Release;
